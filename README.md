@@ -44,14 +44,14 @@ note: you will need [uv](https://github.com/astral-sh/uv) package manager to bui
 
 on mac/linux:
 ```bash
-git clone # cloning repo
+git clone https://github.com/justtechno/microwiki # cloning repo
 cd ./microwiki # moving into cloned repo
 make build # building project
 ```
 
 on windows:
 ```powershell
-git clone # cloning repo
+git clone  https://github.com/justtechno/microwiki# cloning repo
 cd ./microwiki # moving into cloned repo
 make build_windows # building project with windows path syntax
 ```
