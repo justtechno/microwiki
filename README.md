@@ -67,4 +67,4 @@ Just go to releases select release for you system(no mac build, sorry) install i
 
 ### License
 
-Project is licensed under [MIT]()
+Project is licensed under [MIT](LICENSE)
