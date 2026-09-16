@@ -78,3 +78,31 @@ WikiScreen {
   border: heavy $background;
   content-align: center middle;
 }
+
+/* delete confirm screen */
+ConfirmDelete {
+  layout: horizontal
+}
+
+.delete_button {
+		content-align: center bottom;
+		width: 1fr;
+		height: 5;
+		margin: 5 5 5 5;
+}
+
+#deletecontainer {
+    height: 100%;
+		width: 100%;
+		content-align: center middle;
+    margin: 4 4;
+    background: $panel;
+    border: heavy $background;
+    padding: 1 1;
+}
+
+#deletetitle {
+		content-align: center middle;
+		height: 1fr;
+		width: 1fr;
+}

@@ -1,7 +1,9 @@
 import json
 import os
 
-from config_utils import parse_config
+from utils.config_utils import parse_config
+
+"""a module with some editor/deleting/creating utils"""
 
 config = parse_config()
 

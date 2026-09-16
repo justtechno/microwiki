@@ -4,6 +4,7 @@ import os
 import sys
 from pathlib import Path
 from time import sleep
+import shutil
 
 from about import get_about_info
 from textual import on
@@ -22,8 +23,7 @@ from textual.widgets import (
     TextArea,
 )
 from utils.config_utils import parse_config
-from utils.editor_utils import writefile
-from utils.editor_utils import createwiki
+from utils.editor_utils import createwiki, writefile
 from utils.wikiparser import parselocalwiki, wikilist
 
 ABOUT = get_about_info()
@@ -92,6 +92,10 @@ class WikiScreen(Screen):
 
 class MainMenu(Screen):
     """main menu screen"""
+    BINDINGS = [
+        Binding("h", "app.focus_previous"),
+        Binding("l", "app.focus_next")
+]
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -107,15 +111,36 @@ class MainMenu(Screen):
 
 class WikiListScreen(Screen):
     """screen with a list of wiki"""
+    BINDINGS = [
+            Binding("ctrl+a", "app.push_screen('WikiCreator')"),
+            Binding("ctrl+d", "delete_wiki()"),
+            Binding("j", "app.focus_next"),
+            Binding("k", "app.focus_previous"),
+            # force focus to move from input
+            Binding("ctrl+j", "app.focus_next", priority=True), 
+            Binding("ctrl+k", "app.focus_previous", priority=True),
+]
 
     def compose(self) -> ComposeResult:
         wiki_list = wikilist(config["wikistorage"])
         yield Label("Select wiki", id="wikilist_label")
         yield Input(id="search")
-        with VerticalScroll(): 
+        with VerticalScroll(id="scroller"): 
             for wikiname in wiki_list:
                 yield Button(wikiname, classes="wiki_button") # display all wiki
     
+    def action_delete_wiki(self) -> None:
+        """delete wiki via pushing screen"""
+        global dirtodelete
+        focused = self.screen.focused
+        # Checking is focused widget a button
+        if isinstance(focused, Button):
+            dirtodelete = str(focused.label)
+            self.app.push_screen("ConfirmDelete")
+        else:
+            self.notify("Can not delete wiki, the focused widhet is not a wiki")
+        
+
     def on_input_changed(self, event: Input.Changed) -> None:
         """filter wikis by input"""
         search_text = event.value.lower() # saves input to search case-insensitive
@@ -127,6 +152,13 @@ class WikiListScreen(Screen):
             else:
                 button.styles.display = "none" # Hides button if it's label doesn't match the query 
 
+    def on_screen_resume(self) -> None:
+        wiki_list = wikilist(config["wikistorage"])
+        self.query(".wiki_button").remove()
+        for wikiname in wiki_list:
+            self.query_one("#scroller").mount(Button(wikiname, classes="wiki_button"))
+        
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """open wiki on button clicked"""
         if event.button.has_class("wiki_button"): # do only if button is wiki button
@@ -134,20 +166,62 @@ class WikiListScreen(Screen):
             path_to_wiki = Path(f"./{event.button.label}/") 
             self.app.push_screen("Wiki")
 
+class ConfirmDelete(Screen):
+    """screen to confirm wiki deleting"""
+    BINDINGS = [
+        Binding("h", "app.focus_previous"),
+        Binding("l", "app.focus_next")
+]
+
+    def compose(self) -> ComposeResult:
+        yield Container(
+        Static("Are you sure want to delete wiki?", id="deletetitle"),
+        Horizontal(
+            Button("Yes", id="yes", classes="delete_button"),
+            Button("No", id="no", classes="delete_button"),
+            ),
+            id="deletecontainer"
+        )
+
+    @on(Button.Pressed, "#yes")
+    def delete_wiki(self) -> None:
+        global dirtodelete
+        shutil.rmtree(dirtodelete, ignore_errors=True)
+        dirtodelete = None
+        self.app.push_screen("WikiListScreen")
+
+    @on(Button.Pressed, "#no")
+    def cancel(self) -> None:
+        global dirtodelete
+        dirtodelete = None
+        self.app.push_screen("WikiListScreen")
+
 class WikiCreator(Screen):
     """screen creating wiki"""
+    BINDINGS = [
+    Binding("ctrl+enter", "confirm"),
+    Binding("ctrl+escape", "app.push_screen('WikiListScreen')"),
+    Binding("ctrl+k", "app.focus_previous", priority=True),
+    Binding("ctrl+j", "app.focus_next", priority=True)
+]
 
     def compose(self) -> ComposeResult:
         yield Input(id="name_input", placeholder="Wiki name", type="text")
-        yield Input(id="description_input", placeholder="Wiki description", type="text")
+        yield Input(id="description_input", placeholder="Wiki description(optional)", type="text")
 
     def action_confirm(self) -> None:
+        """validating input and configrming"""
         name = self.query_one("#name_input").value
         description = self.query_one("#description_input").value
         if len(name) == 0:
             self.notify("Fill the name input!")
         else:
             result = createwiki(name, description)
+            if result != "succes":
+                self.notify(f"An error ocured creating wiki: {result}")
+            else:
+                self.notify("Wiki sucess created")
+            self.app.push_screen("WikiListScreen")
         
 
 class AboutScreen(Screen):
@@ -172,6 +246,8 @@ class CoreApp(App):
         self.install_screen(MainMenu(), name="MainMenu")
         self.install_screen(WikiListScreen(), name="WikiListScreen")
         self.install_screen(AboutScreen(), name="About")
+        self.install_screen(WikiCreator(), name="WikiCreator")
+        self.install_screen(ConfirmDelete(), name="ConfirmDelete")
         self.push_screen("MainMenu")
         self.theme = config["theme"]
     
