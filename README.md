@@ -2,7 +2,7 @@
 
 ## Languages
 
-[русский]() | english(current)
+[русский](README_RU.md) | english(current)
 
 ### About microwiki
 
