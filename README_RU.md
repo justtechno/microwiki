@@ -41,14 +41,14 @@
 
 На Mac/Linux:
 ```bash
-git clone # клонирование репозитория
+git clone https://github.com/justtechno/microwiki # клонирование репозитория
 cd ./microwiki # переход в клонированный репозиторий
 make build # сборка проекта
 ```
 
 На Windows:
 ```powershell
-git clone # клонирование репозитория
+git clone https://github.com/justtechno/microwiki # клонирование репозитория
 cd ./microwiki # переход в клонированный репозиторий
 make build_windows # сборка проекта с синтаксисом путей Windows
 ```
