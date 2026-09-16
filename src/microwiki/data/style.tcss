@@ -1,0 +1,80 @@
+/* screen borders */
+Screen {
+  border: heavy $border;
+}
+
+/* main menu styles */
+#mainmenu {
+    height: 100%;
+		width: 100%;
+		content-align: center middle;
+    margin: 8 16;
+    background: $panel;
+    border: heavy $background;
+    padding: 1 1;
+}
+
+#maintitle {
+		content-align: center middle;
+		height: 1fr;
+		width: 1fr;
+}
+
+#main_button_container {
+		width: 100%;
+		height: 100%;
+}
+
+.main_button {
+		content-align: center bottom;
+		width: 1fr;
+		height: 5;
+		margin: 5 5 5 5;
+}
+
+/* about screen styles */
+#about_container {
+  height: 100%;
+  width: 100%;
+  content-align: center middle;
+  margin: 2 2;
+  background: $panel;
+  border: heavy $background;
+  padding: 1 1;
+}
+
+/* wiki list */
+WikiListScreen {
+  layout: vertical;
+}
+
+.wiki_button {
+  margin: 1 8;
+  width: 1fr;
+  height: 15%;
+}
+
+#wikilist_label {
+  height: auto;
+  width: 100%;
+  content-align: center top;
+}
+
+/* wiki screen */
+WikiScreen {
+  layout: horizontal;
+}
+
+#markdown_editor {
+  margin: 1 1;
+  padding: 2 2;
+  border: heavy $background;
+  content-align: center middle;
+}
+
+#wikiviewer {
+  margin: 1 1;
+  padding: 2 2;
+  border: heavy $background;
+  content-align: center middle;
+}

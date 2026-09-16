@@ -1,0 +1,23 @@
+[project]
+name = "microwiki"
+version = "0.1.0"
+description = "A TUI local lightweight knowledge base"
+readme = "README.md"
+authors = [
+    { name = "justtechno", email = "daniz.ef2202@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "pyinstaller>=6.22.3",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "ruff>=0.16.6",
+    "textual[markdown]>=8.2.8",
+]
+
+[project.scripts]
+microwiki = "microwiki:main"
+
+[build-system]
+requires = ["uv_build>=0.12.8,<0.13.0"]
+build-backend = "uv_build"
