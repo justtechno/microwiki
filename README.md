@@ -40,6 +40,7 @@ There are three installation ways
 
 ##### From source
 The recomended way is build it from source
+note: you will need [uv](https://github.com/astral-sh/uv) package manager to build it
 
 on mac/linux:
 ```bash
