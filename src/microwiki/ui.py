@@ -22,6 +22,7 @@ from textual.widgets import (
     Static,
     TextArea,
 )
+
 from utils.config_utils import parse_config
 from utils.editor_utils import createwiki, writefile
 from utils.wikiparser import parselocalwiki, wikilist
