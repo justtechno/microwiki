@@ -1,10 +1,12 @@
 """all the UI of app"""
 
 import os
+from posixpath import isfile
+import shutil
 import sys
 from pathlib import Path
+import asyncio
 from time import sleep
-import shutil
 
 from about import get_about_info
 from textual import on
@@ -14,6 +16,7 @@ from textual.containers import Container, Horizontal, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import (
     Button,
+    DirectoryTree,
     Header,
     Input,
     Label,
@@ -21,6 +24,7 @@ from textual.widgets import (
     MarkdownViewer,
     Static,
     TextArea,
+    DirectoryTree,
 )
 from utils.config_utils import parse_config
 from utils.editor_utils import createwiki, writefile
@@ -28,19 +32,155 @@ from utils.wikiparser import parselocalwiki, wikilist
 
 ABOUT = get_about_info()
 
+class WikiFileManager(Screen):
+    """wiki file manager"""
+    BINDINGS = [
+            Binding("m", "app.push_screen('Wiki')", priority=True),
+            Binding("ctrl+a", "pre_mkfile"),
+            Binding("ctrl+r", "pre_rename"),
+            Binding("ctrl+d", "pre_rmfile"),
+            Binding("enter", "filedispatch", priority=True)
+]
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield DirectoryTree("./", id="fm_core") 
+        yield Input(id="fm_name_input", placeholder="input file name")
+        yield Container(
+        Static("Are you sure want to delete file?", id="deletetitle"),
+        Horizontal(
+            Button("Yes", id="fm_yes", classes="fm_delete_button"),
+            Button("No", id="fm_no", classes="fm_delete_button"),
+            ),
+            id="fm_deletecontainer"
+        )
+
+
+
+    def on_mount(self) -> None:
+        self.query_one("#fm_name_input").styles.display = "none"
+        self.query_one("#fm_deletecontainer").styles.display = "none"
+        # ----------states----------
+        self.creating_file = False
+        self.editing_filename = False
+        self.removing_file = False
+
+    def get_focused_file(self) -> None:
+        """return focused file"""
+        tree = self.query_one(DirectoryTree)
+        node = tree.cursor_node 
+        if node and node.data: # check if node exists
+            current_path = node.data.path
+            return current_path # return path to focused file
+        else: 
+            return None # if there are not node exists return None
+     
+    async def action_move_viewer(self) -> None:
+        """opens other document via viewer"""      
+        global mdfile_path
+        global moving_via_fm
+        mdfile_path = self.get_focused_file()
+        moving_via_fm = True
+        self.app.push_screen("Wiki")
+
+    def action_pre_rename(self) -> None:
+        """a pre-rename file function"""
+        if self.editing_filename == False:
+            self.query_one("#fm_name_input").styles.display = "block"
+            self.query_one("#fm_core").styles.display = "none"
+            self.editing_filename = True
+
+    def action_rename(self) -> None:
+        """rename file"""
+        if self.editing_filename == True:
+            newname = self.query_one("#fm_name_input").value
+            file = self.get_focused_file()         
+            file.rename(newname)
+            self.editing_filename = False
+            self.query_one("#fm_core").styles.display = "block"
+            self.query_one("#fm_name_input").styles.display = "none"
+            self.query_one("#fm_core").reload()
+    
+    def action_pre_mkfile(self) -> None:
+        """a pre-make file function"""
+        if self.creating_file == False:
+            self.query_one("#fm_name_input").styles.display = "block"
+            self.query_one("#fm_core").styles.display = "none"
+            self.creating_file = True
+    
+    async def action_pre_rmfile(self) -> None:
+        """start remove file"""
+        if self.removing_file == False:
+            self.query_one("#fm_core").styles.display = "none"
+            self.query_one("#fm_deletecontainer").styles.display = "block"
+            self.removing_file = True
+
+    def action_mkfile(self) -> None:
+        """make file"""
+        if self.creating_file == True:
+            name = self.query_one("#fm_name_input").value
+            result = writefile("", name)
+            if result != "succes":
+                self.notify(f"an error ocured creating file: {result}")
+            else:
+                self.notify(f"file {os.getcwd()}{name} successfully created")
+                self.query_one("#fm_core").reload()
+            self.creating_file = False
+            self.query_one("#fm_name_input").styles.display = "none"
+            self.query_one("#fm_core").styles.display = "block"
+ 
+    async def action_filedispatch(self) -> None:
+        """dispatches file-interaction function based on variables value"""
+        if self.editing_filename == True:
+            self.action_rename()
+        elif self.creating_file == True:
+            self.action_mkfile()
+        elif self.removing_file ==  True:
+            focused = self.screen.focused
+            self.query_one(f"#{focused.id}").press()
+        elif self.creating_file == False and self.editing_filename == False and self.removing_file == False:
+            await self.action_move_viewer()
+
+    @on(Button.Pressed, "#fm_yes")
+    def remove_confirm(self) -> None:
+        """confirm removing file"""
+        if self.removing_file == True:
+            file = self.get_focused_file()
+            if file.is_file() == True and file.is_dir() == False:
+                file.unlink()
+            self.removing_file = False
+            self.query_one("#fm_deletecontainer").styles.display = "none"
+            self.query_one("#fm_core").styles.display = "block"
+            self.query_one("#fm_core").reload()
+            self.query_one("#fm_core").focus()
+    
+
+    @on(Button.Pressed, "#fm_no")
+    def remove_cancel(self) -> None:
+        """cancel removing file"""
+        if self.removing_file == True:
+            self.removing_file = False
+            self.query_one("#fm_deletecontainer").styles.display = "none"
+            self.query_one("#fm_core").styles.display = "block"
+            self.query_one("#fm_core").focus()
+
 class WikiScreen(Screen):
     """wiki screen, displays wiki content"""
     BINDINGS = [
         Binding("m", "app.push_screen('WikiListScreen')", "back to wiki list", priority=True),
         Binding("alt+e", "toggle_editor()", "toggle markdown editor", priority=True),
-        Binding("ctrl+s", "write()", "write changes to file", priority=True)
+        Binding("ctrl+s", "write()", "write changes to file", priority=True),
+        Binding("ctrl+f", "app.push_screen('WikiFileManager')", priority=True),
     ]
 
     def compose(self) -> ComposeResult:
         yield Header()
         yield MarkdownViewer(open_links=False, id="wikiviewer") 
         yield TextArea(id="markdown_editor", language="markdown")
-    
+
+    async def push_file(self, path) -> None:
+        await self.query_one("#wikiviewer").go(path)
+
     def on_mount(self) -> None:
         self.query_one("#markdown_editor").styles.display = "none" 
 
@@ -52,21 +192,31 @@ class WikiScreen(Screen):
             self.query_one("#markdown_editor").text = md_text # load text from variable to editor
         elif self.query_one("#markdown_editor").styles.display == "block":
             self.query_one("#markdown_editor").styles.display = "none"
+    
+
 
     async def on_screen_resume(self) -> None:
         """start wiki after pushing screen"""
-
         global mdfile_path
-        viewer = self.query_one("#wikiviewer")
-        os.chdir(config["wikistorage"])
-        wikijson = parselocalwiki(path_to_wiki) # get info about wiki
-        mdfile = wikijson["enterpoint"]
-        mdfile_path = Path(f"{config["wikistorage"]}/{path_to_wiki}/{mdfile}")
-        if mdfile_path.exists() == True:
-            await viewer.go(mdfile_path) # open main file of wiki
-        else:
-            self.app.push_screen("WikiListScreen")
-            self.notify(f"{mdfile_path!s} Path not exists") # notify if there arent main file of wiki
+        global moving_via_fm
+        if moving_via_fm == False:
+            viewer = self.query_one("#wikiviewer")
+            os.chdir(config["wikistorage"])
+            wikijson = parselocalwiki(path_to_wiki) # get info about wiki
+            mdfile = wikijson["enterpoint"]
+            mdfile_path = Path(f"{config["wikistorage"]}/{path_to_wiki}/{mdfile}")
+            if mdfile_path.exists() == True:
+                await viewer.go(mdfile_path) # open main file of wiki
+                os.chdir(path_to_wiki)
+            else:
+                self.app.push_screen("WikiListScreen")
+                self.notify(f"{mdfile_path!s} Path not exists") # notify if there arent main file of wiki
+        elif moving_via_fm == True:
+            self.app.notify(f"debug {mdfile_path}")
+            viewer = self.query_one("#wikiviewer") 
+            if mdfile_path.exists() == True:
+                await viewer.go(mdfile_path)
+            moving_via_fm = False
 
     async def on_markdown_link_clicked(self, message: Markdown.LinkClicked) -> None:
         """change markdown file""" 
@@ -248,6 +398,7 @@ class CoreApp(App):
         self.install_screen(AboutScreen(), name="About")
         self.install_screen(WikiCreator(), name="WikiCreator")
         self.install_screen(ConfirmDelete(), name="ConfirmDelete")
+        self.install_screen(WikiFileManager(), name="WikiFileManager")
         self.push_screen("MainMenu")
         self.theme = config["theme"]
     
@@ -268,7 +419,9 @@ def main():
     """a main app runner function"""
     global app     
     global config 
-    
+    global moving_via_fm
+    moving_via_fm = False 
+
     # checking config data types
     config = parse_config()
 

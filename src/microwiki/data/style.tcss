@@ -106,3 +106,20 @@ ConfirmDelete {
 		height: 1fr;
 		width: 1fr;
 }
+
+#fm_deletecontainer {
+    height: 100%;
+		width: 100%;
+		content-align: center middle;
+    margin: 4 4;
+    background: $panel;
+    border: heavy $background;
+    padding: 1 1;
+}
+
+.fm_delete_button {
+		content-align: center bottom;
+		width: 1fr;
+		height: 5;
+		margin: 5 5 5 5;
+}

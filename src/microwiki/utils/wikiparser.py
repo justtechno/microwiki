@@ -13,6 +13,7 @@ def parselocalwiki(dir: str) -> str:
             wikitext = json.load(file)
     except Exception as err:
         return f"error: {err}"
+        raise
     else:
         if (
             "enterpoint" in wikitext
