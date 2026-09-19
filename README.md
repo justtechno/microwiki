@@ -1,5 +1,7 @@
 # Microwiki
 
+**warning: microwiki is currently developed primary on [codeberg](https://codeberg.org/justtechno/microwiki), on github it is published first time and now a mirror, we still accept PR's and issues on githu  but better to send it on codeberg**
+
 ## Languages
 
 [русский](README_RU.md) | english(current)
