@@ -122,11 +122,11 @@ class WikiFileManager(Screen):
         if self.creating_file == True:
             name = self.query_one("#fm_name_input").value
             result = writefile("", name)
-            if result != "succes":
-                self.notify(f"an error ocured creating file: {result}")
-            else:
+            if result == WriteStatus.SUCCESS:
                 self.notify(f"file {os.getcwd()}{name} successfully created")
                 self.query_one("#fm_core").reload()
+            else: 
+                self.notify(f"an error ocured creating file: {result.value}")
             self.creating_file = False
             self.query_one("#fm_name_input").styles.display = "none"
             self.query_one("#fm_core").styles.display = "block"
