@@ -441,19 +441,6 @@ def main():
     else:
         print("succes: 'wikistorage' value in config is str")
 
-    if type(config["allow_edit"]) != bool:
-        print("error: 'allow_edit' value in config is not bool") 
-        print("exiting")
-        sys.exit(1)
-    else:
-        print("succes: 'allow_edit' value in config is bool")
-
-    if type(config["editor"]) != str:
-        print("error: 'editor' value in config is not str") 
-        print("exiting")
-        sys.exit(1)
-    else:
-        print("succes: 'editor' value in config is str")
 
     print("all data types from config are valid") 
     print("starting app")
