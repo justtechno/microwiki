@@ -93,6 +93,7 @@ name = "microwiki"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "platformdirs" },
     { name = "pyinstaller" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -102,11 +103,12 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "platformdirs", specifier = ">=4.11.7" },
     { name = "pyinstaller", specifier = ">=6.22.3" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-asyncio", specifier = ">=1.4.0" },
     { name = "ruff", specifier = ">=0.16.6" },
-    { name = "textual", extras = ["markdown"], specifier = ">=8.2.8" },
+    { name = "textual", specifier = ">=8.2.8" },
 ]
 
 [[package]]
