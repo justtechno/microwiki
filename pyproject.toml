@@ -1,6 +1,6 @@
 [project]
 name = "microwiki"
-version = "0.1.0"
+version = "0.1.5"
 description = "A TUI local lightweight knowledge base"
 readme = "README.md"
 authors = [
