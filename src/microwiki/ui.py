@@ -30,6 +30,8 @@ from utils.config_utils import parse_config
 from utils.editor_utils import createwiki, writefile
 from utils.wikiparser import parselocalwiki, wikilist
 
+from enums import WriteStatus
+
 ABOUT = get_about_info()
 
 class WikiFileManager(Screen):
@@ -233,10 +235,8 @@ class WikiScreen(Screen):
         text = self.query_one("#markdown_editor").text
         result = writefile(text, mdfile_path)
         # notifying about result
-        if result != "succes":
-            self.notify(f"file {mdfile_path} not writen cause of {result}") 
-        else:
-            self.notify(f"file {mdfile_path} succes writen")
+        self.notify(f"{result.value}: {mdfile_path}")
+        if result == WriteStatus.SUCCESS:
             await viewer.document.update(text)
  
 
@@ -367,10 +367,10 @@ class WikiCreator(Screen):
             self.notify("Fill the name input!")
         else:
             result = createwiki(name, description)
-            if result != "succes":
-                self.notify(f"An error ocured creating wiki: {result}")
-            else:
-                self.notify("Wiki sucess created")
+            if result == WriteStatus.FAILED:
+                self.notify(f"{result.value}")
+            elif result == WriteStatus.SUCCESS:
+                self.notify(f"{result.value}")
             self.app.push_screen("WikiListScreen")
         
 
@@ -380,6 +380,7 @@ class AboutScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header()
         yield Markdown(ABOUT, id="about_container")
+
 
 class CoreApp(App):
     """a main app class"""
@@ -408,13 +409,13 @@ class CoreApp(App):
         self.app.push_screen("MainMenu")
 
     @on(Button.Pressed, "#Wiki")
-    def mowetowikilist(self) -> None:
+    def move_to_wikilist(self) -> None:
         self.push_screen("WikiListScreen")
 
     @on(Button.Pressed, "#About")
-    def mowetoaboutscreen(self) -> None:
+    def move_to_about_screen(self) -> None:
         self.push_screen("About") 
-        
+
 def main():
     """a main app runner function"""
     global app     

@@ -25,6 +25,3 @@ def parse_config():
             baseconfigjson = json.dumps(baseconfigdict)
             file.write(baseconfigjson)
         return baseconfigdict
-
-
-print(parse_config())

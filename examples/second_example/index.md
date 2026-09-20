@@ -13,5 +13,5 @@ it is a **second example**.
 
 ### code blocks
 ```python
-print("Hello, world!") # A classic
+print("Hello, world!") # A hello world on python
 ```
