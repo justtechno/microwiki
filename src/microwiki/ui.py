@@ -180,20 +180,24 @@ class WikiScreen(Screen):
         yield MarkdownViewer(open_links=False, id="wikiviewer") 
         yield TextArea(id="markdown_editor", language="markdown")
 
-    async def push_file(self, path) -> None:
-        await self.query_one("#wikiviewer").go(path)
-
     def on_mount(self) -> None:
         self.query_one("#markdown_editor").styles.display = "none" 
 
-    def action_toggle_editor(self) -> None:
+    async def action_toggle_editor(self) -> None:
         """toggle editor"""
         md_text = self.query_one("#wikiviewer").document.source # get text from markdown viewer
-        if self.query_one("#markdown_editor").styles.display == "none":
-            self.query_one("#markdown_editor").styles.display = "block"
-            self.query_one("#markdown_editor").text = md_text # load text from variable to editor
-        elif self.query_one("#markdown_editor").styles.display == "block":
-            self.query_one("#markdown_editor").styles.display = "none"
+        if config["editor"] == "Built-in":
+            if self.query_one("#markdown_editor").styles.display == "none":
+                self.query_one("#markdown_editor").styles.display = "block"
+                self.query_one("#markdown_editor").text = md_text # load text from variable to editor
+            elif self.query_one("#markdown_editor").styles.display == "block":
+                self.query_one("#markdown_editor").styles.display = "none"
+        else:
+            with self.app.suspend():
+                os.system(f"{config["editor"]} {mdfile_path}")
+            with open(mdfile_path, "r", encoding="utf-8") as file:
+                text = file.read()
+            await self.query_one("#wikiviewer").document.update(text)
     
 
 

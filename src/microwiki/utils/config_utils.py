@@ -20,6 +20,7 @@ def parse_config():
             baseconfigdict = {
                 "theme": "nord",
                 "wikistorage": f"{pdirs.user_data_dir}",
+                "editor": "Built-in",
             }
             baseconfigjson = json.dumps(baseconfigdict)
             file.write(baseconfigjson)
