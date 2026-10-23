@@ -43,7 +43,7 @@ The recomended way is build it from source
 note: you will need [uv](https://github.com/astral-sh/uv) package manager to build it
 ```bash
 git clone https://github.com/justtechno/microwiki # cloning repo
-cd .\microwiki # moving into cloned repo
+cd ./microwiki # moving into cloned repo
 uv run task build # building project
 ```
 
